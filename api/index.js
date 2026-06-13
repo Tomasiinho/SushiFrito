@@ -1,3 +1,4 @@
+require('dotenv').config(); // Cargamos las variables de entorno en la primera línea
 const express = require('express');
 const cors = require('cors');
 const { Pool } = require('pg');
@@ -45,12 +46,13 @@ app.post('/api/pedidos', async (req, res) => {
 
     // Insertar el desglose de platos en detalles_pedido
     const detalleQuery = `
-      INSERT INTO detalles_pedido (pedido_id, producto_id, cantidad, notas_especiales)
+      INSERT INTO detalles_pedido (pedido_id, producto_id, cantidad, notes_especiales)
       VALUES ($1, $2, $3, $4);
     `;
 
     for (const item of items) {
-      await client.query(detalleQuery, [pedidoId, item.producto_id, item.cantidad, item.notas_especiales]);
+      // Ajustado a 'item.notes_especiales' para coincidir con la columna de la Base de Datos
+      await client.query(detalleQuery, [pedidoId, item.producto_id, item.cantidad, item.notes_especiales]);
     }
 
     await client.query('COMMIT'); // Si todo fue bien, guardamos definitivamente
@@ -82,7 +84,7 @@ app.get('/api/pedidos/activos', async (req, res) => {
           json_build_object(
             'producto_id', dp.producto_id,
             'cantidad', dp.cantidad,
-            'notas_especiales', dp.notas_especiales
+            'notas_especiales', dp.notes_especiales
           )
         ) AS items
       FROM pedidos p
@@ -132,6 +134,12 @@ app.put('/api/pedidos/:id/estado', async (req, res) => {
     console.error('Error al actualizar estado del pedido:', error);
     res.status(500).json({ success: false, error: 'Error al actualizar el estado en la base de datos' });
   }
+});
+
+// 5. LEVANTAR EL PUERTO LOCAL (Habilitado para pruebas en CMD)
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`🚀 Servidor SushiFrito corriendo con éxito en el puerto ${PORT}`);
 });
 
 module.exports = app;
