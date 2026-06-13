@@ -1,26 +1,23 @@
-import 'package:flutter/material.dart';
-import 'core/theme/sushi_theme.dart';
+import 'package:flutter/material';
+import 'screens/kds_screen.dart';
+
 void main() {
-  runApp(const SushiFritoApp());
+  runApp(const MyApp());
 }
 
-class SushiFritoApp extends StatelessWidget {
-  const SushiFritoApp({super.key});
+class MyApp extends StatelessWidget {
+  const MyApp({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'SushiFrito',
+      title: 'SushiFrito KDS',
       debugShowCheckedModeBanner: false,
-      theme: SushiTheme.darkMode, // Carga nuestra paleta de colores oficial
-      home: const Scaffold(
-        body: Center(
-          child: Text(
-            'SushiFrito: Inicializado con éxito 🚀',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          ),
-        ),
+      theme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.orange),
+        useMaterial3: true,
       ),
+      home: const KdsScreen(),
     );
   }
 }
