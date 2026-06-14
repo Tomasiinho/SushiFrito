@@ -2,9 +2,8 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 class ApiService {
-  // Mientras pruebas en tu máquina local, usamos localhost.
-  // Cuando desplieguen el backend en Vercel, solo cambias esta línea por tu link de internet.
-  static const String baseUrl = 'http://localhost:3000/api';
+  // URL base apuntando directo al servidor de Vercel en producción
+  static const String baseUrl = "https://sushifrito-backend.vercel.app/api";
 
   // 1. Obtener Pedidos Activos para la Pantalla de Cocina KDS (UT1572)
   Future<List<dynamic>> obtenerPedidosActivos() async {
@@ -40,6 +39,28 @@ class ApiService {
       return false;
     } catch (e) {
       print('Error al cambiar estado del pedido $pedidoId: $e');
+      return false;
+    }
+  }
+
+  // 3. NUEVO: Registrar un pedido nuevo desde la App del Cliente (UT1571)
+  Future<bool> registrarPedido(Map<String, dynamic> datosPedido) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/pedidos'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(datosPedido),
+      );
+
+      // El backend de Node suele responder con 201 (Created) o 200 cuando inserta con éxito
+      if (response.statusCode == 201 || response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return data['success'] == true;
+      }
+      print('Fallo en la respuesta del servidor al registrar: ${response.body}');
+      return false;
+    } catch (e) {
+      print('Error de conexión al intentar registrar el pedido: $e');
       return false;
     }
   }

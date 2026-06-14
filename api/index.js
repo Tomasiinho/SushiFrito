@@ -67,7 +67,7 @@ app.post('/api/pedidos', async (req, res) => {
   }
 });
 
-// 3. ENDPOINT: Obtener Pedidos para Cocina KDS (UT1572 / UT1574)
+// 3. ENDPOINT: Obtener Pedidos para Cocina KDS (Corregido con nombre de tabla en singular)
 app.get('/api/pedidos/activos', async (req, res) => {
   try {
     const query = `

@@ -1,4 +1,5 @@
-import 'package:flutter/material'; // <-- ESTA LÍNEA ES LA QUE SANA TODOS LOS ERRORES
+import 'package:flutter/material.dart';
+import 'dart:async'; // Para el auto-refresco automático
 import '../services/api_service.dart';
 
 class KdsScreen extends StatefulWidget {
@@ -11,11 +12,23 @@ class KdsScreen extends StatefulWidget {
 class _KdsScreenState extends State<KdsScreen> {
   final ApiService _apiService = ApiService();
   late Future<List<dynamic>> _futurePedidos;
+  Timer? _timerRefresco; // Manejador del temporizador
 
   @override
   void initState() {
     super.initState();
     _refrescarPedidos();
+    
+    // Configuración del auto-refresco automático cada 15 segundos
+    _timerRefresco = Timer.periodic(const Duration(seconds: 15), (timer) {
+      _refrescarPedidos();
+    });
+  }
+
+  @override
+  void dispose() {
+    _timerRefresco?.cancel(); // Limpiamos el timer para evitar fugas de memoria
+    super.dispose();
   }
 
   void _refrescarPedidos() {
@@ -92,11 +105,13 @@ class _KdsScreenState extends State<KdsScreen> {
               final pedido = pedidos[index];
               final int id = pedido['pedido_id'];
               final String estado = pedido['estado'];
-              final double minutos = double.parse(pedido['minutos_transcurridos'].toString());
+              
+              // Parseo seguro blindado contra strings largos de Postgres/Neon
+              final double minutes = double.tryParse(pedido['minutos_transcurridos'].toString()) ?? 0.0;
               final List<dynamic> items = pedido['items'];
 
-              Color tarjetaColor = minutos > 15 ? Colors.red.shade50 : Colors.orange.shade50;
-              Color bordeColor = minutos > 15 ? Colors.red : Colors.orange.shade300;
+              Color tarjetaColor = minutes > 15 ? Colors.red.shade50 : Colors.orange.shade50;
+              Color bordeColor = minutes > 15 ? Colors.red : Colors.orange.shade300;
 
               return Card(
                 color: tarjetaColor,
@@ -111,7 +126,7 @@ class _KdsScreenState extends State<KdsScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Row(
-                        mainAxisAlignment: MainAxisAlignment.between,
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
                             'Pedido #$id',
@@ -128,7 +143,7 @@ class _KdsScreenState extends State<KdsScreen> {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        '⏱️ Hace ${minutos.toStringAsFixed(0)} minutos',
+                        '⏱️ Hace ${minutes.toStringAsFixed(0)} minutos',
                         style: TextStyle(color: Colors.grey.shade800, fontWeight: FontWeight.w500),
                       ),
                       const Divider(thickness: 1.5),
@@ -137,20 +152,35 @@ class _KdsScreenState extends State<KdsScreen> {
                           itemCount: items.length,
                           itemBuilder: (context, idx) {
                             final item = items[idx];
+                            
+                            // Rescatamos las notas con soporte para ambos idiomas
+                            final String notas = (item['notas_especiales'] ?? item['notes_especiales'] ?? '').toString();
+                            final int productoId = int.tryParse(item['producto_id'].toString()) ?? 0;
+                            
+                            // 🔥 TRADUCTOR DE ENTRADAS: Mapea la ID real de la base de datos con el nombre comercial
+                            String nombreProducto = 'Sushi Roll [ID: $productoId]';
+                            if (productoId == 1) {
+                              nombreProducto = 'Avocado Roll 🥑';
+                            } else if (productoId == 2) {
+                              nombreProducto = 'Furai Roll 🍤';
+                            } else if (productoId == 3) {
+                              nombreProducto = 'Cheddar Burger Roll 🧀';
+                            }
+
                             return Padding(
                               padding: const EdgeInsets.symmetric(vertical: 4.0),
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    '• ${item['cantidad']}x [Producto ID: ${item['producto_id']}]',
+                                    '• ${item['cantidad']}x $nombreProducto', // <-- Ahora muestra el nombre real traducido
                                     style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                                   ),
-                                  if (item['notas_especiales'] != null && item['notas_especiales'].toString().isNotEmpty)
+                                  if (notas.isNotEmpty)
                                     Padding(
                                       padding: const EdgeInsets.only(left: 14.0, top: 2.0),
                                       child: Text(
-                                        '⚠️ Ojo: ${item['notas_especiales']}',
+                                        '⚠️ Ojo: $notas',
                                         style: const TextStyle(
                                           fontStyle: FontStyle.italic, 
                                           color: Colors.red, 
@@ -176,6 +206,51 @@ class _KdsScreenState extends State<KdsScreen> {
             },
           );
         },
+      ),
+      // Botón flotante para simular las compras entrantes de la app del cliente
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () async {
+          Map<String, dynamic> pedidoFantasma = {
+            "usuario_id": 2, // <-- Cambiamos el cliente
+            "metodo_pago": "efectivo", // <-- Cambiamos a efectivo 💵
+            "total": 24800, // <-- Cambiamos el total matemático
+            "es_programado": false,
+            "bloque_horario": null,
+            "items": [
+              {
+                "producto_id": 3, // <-- Empezamos con el Producto ID 3
+                "cantidad": 1,
+                "notes_especiales": "Sin jengibre por favor"
+              },
+              {
+                "producto_id": 1, 
+                "cantidad": 4, // <-- ¡Se pidió 4 de estos!
+                "notes_especiales": "Salsa unagi extra"
+              }
+            ]
+          };
+
+          bool exito = await _apiService.registrarPedido(pedidoFantasma);
+          if (exito) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('🎉 ¡Pedido simulado insertado en la nube con éxito!'),
+                backgroundColor: Colors.indigo,
+              ),
+            );
+            _refrescarPedidos(); // Recargamos la interfaz inmediatamente
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('❌ No se pudo registrar el pedido fantasma. Revisa la consola.'),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
+        },
+        label: const Text('Simular Pedido Cliente', style: TextStyle(fontWeight: FontWeight.bold)),
+        icon: const Icon(Icons.add_shopping_cart),
+        backgroundColor: Colors.orange.shade900,
       ),
     );
   }
