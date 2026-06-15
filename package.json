@@ -1,19 +1,37 @@
 {
-  "name": "sushifrito-backend",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+  "name": "sushifrito",
+  "version": "0.1.0",
+  "private": true,
+  "description": "SushiFrito MVP completo: app cliente React Native, KDS web y backend tipado.",
+  "packageManager": "pnpm@11.5.1",
+  "engines": {
+    "node": ">=20.9",
+    "pnpm": ">=11"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "type": "commonjs",
-  "dependencies": {
-    "cors": "^2.8.6",
-    "dotenv": "^17.4.2",
-    "express": "^5.2.1",
-    "pg": "^8.21.0"
+  "scripts": {
+    "preinstall": "node scripts/check-package-manager.mjs",
+    "dev": "pnpm --parallel --filter @sushifrito/web --filter @sushifrito/realtime dev",
+    "dev:web": "pnpm --filter @sushifrito/web dev",
+    "dev:mobile": "pnpm --filter @sushifrito/mobile dev",
+    "dev:realtime": "pnpm --filter @sushifrito/realtime dev",
+    "build": "pnpm -r --if-present build",
+    "lint": "eslint . --max-warnings=0",
+    "typecheck": "pnpm -r --if-present typecheck",
+    "test": "pnpm -r --if-present test",
+    "db:generate": "pnpm --filter @sushifrito/db db:generate",
+    "db:migrate": "pnpm --filter @sushifrito/db db:migrate",
+    "check:locks": "node scripts/check-package-manager.mjs",
+    "security:secrets": "gitleaks detect --source . --no-banner --redact",
+    "check": "pnpm lint && pnpm typecheck && pnpm test && pnpm build"
+  },
+  "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "@types/node": "25.9.3",
+    "eslint": "10.4.1",
+    "prettier": "3.7.4",
+    "prettier-plugin-tailwindcss": "0.8.0",
+    "typescript": "5.9.3",
+    "typescript-eslint": "8.61.0",
+    "vitest": "4.1.8"
   }
 }

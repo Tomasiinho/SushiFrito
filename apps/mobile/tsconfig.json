@@ -1,0 +1,15 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "ignoreDeprecations": "6.0",
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"],
+      "@sushifrito/shared": ["../../packages/shared/src/index.ts"]
+    },
+    "types": ["vitest/globals", "node"],
+    "noEmit": true
+  },
+  "include": ["App.tsx", "src/**/*.ts", "src/**/*.tsx", "vitest.config.ts"]
+}

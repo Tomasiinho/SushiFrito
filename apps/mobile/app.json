@@ -1,0 +1,28 @@
+{
+  "expo": {
+    "name": "SushiFrito",
+    "slug": "sushifrito-mobile",
+    "scheme": "sushifrito",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "platforms": ["ios", "android", "web"],
+    "userInterfaceStyle": "light",
+    "ios": {
+      "bundleIdentifier": "cl.sushifrito.mobile",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      },
+      "supportsTablet": false
+    },
+    "android": {
+      "package": "cl.sushifrito.mobile",
+      "permissions": ["POST_NOTIFICATIONS"]
+    },
+    "plugins": [],
+    "extra": {
+      "eas": {
+        "projectId": "84a08283-1c36-4c6f-9a02-d9b4705678aa"
+      }
+    }
+  }
+}

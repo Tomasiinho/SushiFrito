@@ -1,0 +1,49 @@
+@import "tailwindcss";
+
+:root {
+  color-scheme: light;
+  background: #f8fafc;
+  color: #0f172a;
+}
+
+body {
+  min-height: 100vh;
+  margin: 0;
+  background: #f8fafc;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+.kds-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+
+.kds-blink {
+  animation: kds-alert 1s step-end infinite;
+}
+
+@media (min-width: 768px) {
+  .kds-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1280px) {
+  .kds-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-auto-rows: minmax(28rem, auto);
+  }
+}
+
+@keyframes kds-alert {
+  50% {
+    box-shadow: 0 0 0 4px rgb(220 38 38 / 0.25);
+  }
+}
